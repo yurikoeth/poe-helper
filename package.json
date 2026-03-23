@@ -1,0 +1,21 @@
+{
+  "name": "poe-helper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Path of Exile helper — desktop overlay + web dashboard",
+  "scripts": {
+    "dev:overlay": "turbo run dev --filter=@poe-helper/overlay",
+    "dev:web": "turbo run dev --filter=@poe-helper/web",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  }
+}

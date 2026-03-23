@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+
+# Tauri
+apps/overlay/src-tauri/target/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
