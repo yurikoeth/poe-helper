@@ -1,5 +1,5 @@
 {
-  "name": "@poe-helper/web",
+  "name": "@exiled-orb/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@poe-helper/shared": "workspace:*",
+    "@exiled-orb/shared": "workspace:*",
     "@supabase/supabase-js": "^2.49.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

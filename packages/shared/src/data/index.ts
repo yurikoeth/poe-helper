@@ -1,1 +1,12 @@
 export { DANGEROUS_MODS, analyzeMod, analyzeMap } from "./dangerous-mods.js";
+export { STAT_MAPPINGS, matchMod } from "./stat-mappings.js";
+export type { StatMapping } from "./stat-mappings.js";
+export { HIDEOUT_NAMES, isHideout } from "./hideout-names.js";
+export { MAP_DATABASE, findMap, isMapZone, isBossArena } from "./map-data.js";
+export type { MapInfo } from "./map-data.js";
+export { POE1_LEVELING, POE2_LEVELING, getLevelingGuide, findCurrentStep, getNextStep } from "./leveling-guide.js";
+export type { LevelingStep, LevelingGuide } from "./leveling-guide.js";
+export { ATLAS_STRATEGIES, getStrategies, getStrategy } from "./atlas-strategies.js";
+export type { AtlasStrategy } from "./atlas-strategies.js";
+export { MOD_TIER_DB, evaluateMod, evaluateItem } from "./mod-tiers.js";
+export type { ModTierRange, ModEvaluation, ItemEvaluation } from "./mod-tiers.js";

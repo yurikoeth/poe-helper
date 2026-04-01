@@ -1,11 +1,12 @@
 {
-  "name": "poe-helper",
+  "name": "exiled-orb",
   "version": "0.1.0",
   "private": true,
-  "description": "Path of Exile helper — desktop overlay + web dashboard",
+  "packageManager": "pnpm@10.32.1",
+  "description": "ExiledOrb — all-in-one Path of Exile companion (desktop overlay + web dashboard)",
   "scripts": {
-    "dev:overlay": "turbo run dev --filter=@poe-helper/overlay",
-    "dev:web": "turbo run dev --filter=@poe-helper/web",
+    "dev:overlay": "turbo run dev --filter=@exiled-orb/overlay",
+    "dev:web": "turbo run dev --filter=@exiled-orb/web",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

@@ -1,56 +1,188 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useOverlayStore } from "../stores/overlay-store";
-import { formatDuration } from "@poe-helper/shared";
+import { formatDuration } from "@exiled-orb/shared";
+import poe1Logo from "../assets/poe1-logo.png";
+import poe2Logo from "../assets/poe2-logo.png";
+
+const gameLogos = { poe1: poe1Logo, poe2: poe2Logo } as const;
+
+/**
+ * Try to load a class wallpaper image. Images should be in assets/classes/
+ * named by lowercase class or ascendancy (e.g. elementalist.png, witch.png).
+ */
+const classImageCache: Record<string, string | null> = {};
+
+function useClassImage(className: string | null): string | null {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!className) { setSrc(null); return; }
+
+    const key = className.toLowerCase().replace(/\s+/g, "-");
+
+    if (key in classImageCache) {
+      setSrc(classImageCache[key]);
+      return;
+    }
+
+    // Try to dynamically import the image
+    import(`../assets/classes/${key}.png`)
+      .then((mod) => {
+        classImageCache[key] = mod.default;
+        setSrc(mod.default);
+      })
+      .catch(() => {
+        // Try base class name (e.g. "witch" for "Elementalist")
+        const baseMap: Record<string, string> = {
+          elementalist: "elementalist", necromancer: "witch", occultist: "witch",
+          deadeye: "ranger", raider: "ranger", pathfinder: "ranger",
+          juggernaut: "marauder", berserker: "marauder", chieftain: "marauder",
+          assassin: "shadow", trickster: "shadow", saboteur: "shadow",
+          inquisitor: "templar", hierophant: "templar", guardian: "templar",
+          champion: "duelist", gladiator: "duelist", slayer: "duelist",
+          ascendant: "scion",
+          // PoE2
+          stormweaver: "sorceress", chronomancer: "sorceress",
+          titan: "warrior", warbringer: "warrior",
+          witchhunter: "mercenary", gemling: "mercenary",
+          deadeye2: "ranger",
+          bloodmage: "witch", infernalist: "witch",
+          acolyte: "monk", invoker: "monk",
+        };
+        const fallback = baseMap[key];
+        if (fallback && fallback !== key) {
+          import(`../assets/classes/${fallback}.png`)
+            .then((mod) => {
+              classImageCache[key] = mod.default;
+              setSrc(mod.default);
+            })
+            .catch(() => {
+              classImageCache[key] = null;
+              setSrc(null);
+            });
+        } else {
+          classImageCache[key] = null;
+          setSrc(null);
+        }
+      });
+  }, [className]);
+
+  return src;
+}
 
 export default function ZoneTracker() {
-  const { currentZone, sessionDeaths, sessionStart } = useOverlayStore();
+  const { currentZone, sessionDeaths, sessionStart, detectedGame, characterName, characterClass, areaLevel } =
+    useOverlayStore();
   const [elapsed, setElapsed] = useState(0);
 
-  // Update session timer every second
   useEffect(() => {
     if (!sessionStart) return;
-
     const interval = setInterval(() => {
       setElapsed(Date.now() - sessionStart);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [sessionStart]);
 
-  // Don't show if no session started
-  if (!sessionStart && !currentZone) return null;
+  const classImage = useClassImage(characterClass);
+
+  const refresh = () => {
+    invoke<{ character_name: string | null; zone: string | null; area_level: number | null; game: string | null }>(
+      "get_initial_game_state"
+    ).then((state) => {
+      const store = useOverlayStore.getState();
+      if (state.character_name) store.setCharacterName(state.character_name);
+      if (state.zone) store.setZone(state.zone);
+      if (state.area_level) store.setAreaLevel(state.area_level);
+      if (state.game === "poe1" || state.game === "poe2") store.setDetectedGame(state.game);
+    });
+  };
 
   return (
     <div
-      className="rounded-lg border px-3 py-2 backdrop-blur-sm flex items-center justify-between"
+      className="rounded border px-3 py-3 relative overflow-hidden"
       style={{
-        backgroundColor: "var(--bg-panel)",
-        borderColor: "var(--border-color)",
+        background: "linear-gradient(180deg, rgba(24,24,28,0.95) 0%, rgba(14,14,18,0.95) 100%)",
+        borderColor: "var(--border-gold)",
+        minHeight: 56,
       }}
     >
-      {/* Zone name */}
-      <div className="flex-1 min-w-0 mr-3">
-        <div className="text-xs truncate" style={{ color: "var(--text-primary)" }}>
-          {currentZone || "No zone"}
+      {/* Class art background */}
+      {classImage && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${classImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center 30%",
+            opacity: 0.12,
+          }}
+        />
+      )}
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Top row: character + class + game badge */}
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 min-w-0">
+            {characterName && (
+              <span className="text-sm font-bold truncate" style={{ color: "var(--accent)" }}>
+                {characterName}
+              </span>
+            )}
+            {characterClass && (
+              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                {characterClass}
+              </span>
+            )}
+            {detectedGame && (
+              <img
+                src={gameLogos[detectedGame]}
+                alt={detectedGame}
+                className="h-4 shrink-0"
+                style={{ opacity: 0.8 }}
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {sessionStart && (
+              <span className="text-xs font-mono" style={{ color: "var(--text-secondary)" }} title="Session time">
+                {formatDuration(elapsed)}
+              </span>
+            )}
+            <button
+              onClick={refresh}
+              className="text-xs px-1 py-0.5 rounded hover:opacity-80 transition-opacity"
+              style={{ color: "var(--text-secondary)", background: "rgba(255,255,255,0.06)" }}
+              title="Refresh game state"
+            >
+              ↻
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Session stats */}
-      <div className="flex items-center gap-3 text-xs shrink-0" style={{ color: "var(--text-secondary)" }}>
-        {/* Session timer */}
-        {sessionStart && (
-          <span title="Session time">
-            {formatDuration(elapsed)}
+        {/* Bottom row: zone + area level + deaths */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xs truncate" style={{ color: "var(--text-primary)" }}>
+              {currentZone || "Waiting for zone..."}
+            </span>
+            {areaLevel != null && (
+              <span className="text-xs shrink-0" style={{ color: "var(--text-secondary)" }}>
+                Lv.{areaLevel}
+              </span>
+            )}
+          </div>
+
+          <span
+            className="text-xs shrink-0"
+            style={{ color: sessionDeaths > 0 ? "var(--danger-deadly)" : "var(--text-secondary)" }}
+            title="Deaths this session"
+          >
+            {sessionDeaths > 0 ? `${sessionDeaths} death${sessionDeaths !== 1 ? "s" : ""}` : "Deathless"}
           </span>
-        )}
-
-        {/* Death counter */}
-        <span
-          className={sessionDeaths > 0 ? "text-red-400" : ""}
-          title="Deaths this session"
-        >
-          {sessionDeaths} death{sessionDeaths !== 1 ? "s" : ""}
-        </span>
+        </div>
       </div>
     </div>
   );

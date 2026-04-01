@@ -201,19 +201,69 @@ export const DANGEROUS_MODS: DangerousMod[] = [
   },
 ];
 
-/** Analyze a single mod line against the dangerous mods database */
-export function analyzeMod(modText: string, game: import("../types/item.js").Game = "poe1") {
+/** Build profile tags used for personalized danger assessment */
+interface BuildTags {
+  damageTypes?: string[];
+  defenseTypes?: string[];
+  recoveryTypes?: string[];
+}
+
+/**
+ * Analyze a single mod line against the dangerous mods database.
+ * If a build profile is provided, danger levels are personalized:
+ * - Mods that match the build's dangerousFor tags are elevated
+ * - Mods that match the build's safeFor tags are reduced
+ */
+export function analyzeMod(
+  modText: string,
+  game: import("../types/item.js").Game = "poe1",
+  build?: BuildTags
+) {
   for (const dangerMod of DANGEROUS_MODS) {
     if (!dangerMod.games.includes(game)) continue;
     if (dangerMod.pattern.test(modText)) {
+      let danger = dangerMod.danger;
+      let personalNote: string | null = null;
+
+      if (build) {
+        const allBuildTags = [
+          ...(build.damageTypes ?? []),
+          ...(build.defenseTypes ?? []),
+          ...(build.recoveryTypes ?? []),
+        ];
+
+        // Check if this mod is specifically dangerous for the build
+        const isDangerousForBuild = dangerMod.dangerousFor.some((tag) =>
+          allBuildTags.some((bt) => tag.toLowerCase().includes(bt.toLowerCase()))
+        );
+
+        // Check if this mod is safe for the build
+        const isSafeForBuild = dangerMod.safeFor.some((tag) =>
+          allBuildTags.some((bt) => tag.toLowerCase().includes(bt.toLowerCase()))
+        );
+
+        if (isDangerousForBuild && !isSafeForBuild) {
+          // Elevate danger level
+          if (danger === "caution") danger = "dangerous";
+          else if (danger === "dangerous") danger = "deadly";
+          personalNote = "Dangerous for your build!";
+        } else if (isSafeForBuild && !isDangerousForBuild) {
+          // Reduce danger level
+          if (danger === "deadly") danger = "dangerous";
+          else if (danger === "dangerous") danger = "caution";
+          personalNote = "Your build handles this well.";
+        }
+      }
+
       return {
         modText,
         match: dangerMod,
-        danger: dangerMod.danger,
+        danger,
+        personalNote,
       };
     }
   }
-  return { modText, match: null, danger: "safe" as const };
+  return { modText, match: null, danger: "safe" as const, personalNote: null };
 }
 
 /** Analyze all mods on a map */
@@ -221,9 +271,10 @@ export function analyzeMap(
   mapName: string,
   mods: string[],
   game: import("../types/item.js").Game = "poe1",
-  tier: number | null = null
+  tier: number | null = null,
+  build?: BuildTags
 ) {
-  const analyzed = mods.map((mod) => analyzeMod(mod, game));
+  const analyzed = mods.map((mod) => analyzeMod(mod, game, build));
   const dangerOrder = { deadly: 0, dangerous: 1, caution: 2, safe: 3 };
   const worstDanger = analyzed.reduce(
     (worst, a) => (dangerOrder[a.danger] < dangerOrder[worst] ? a.danger : worst),

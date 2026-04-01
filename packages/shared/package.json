@@ -1,5 +1,5 @@
 {
-  "name": "@poe-helper/shared",
+  "name": "@exiled-orb/shared",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,22 +8,27 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
       "import": "./dist/index.js"
     },
     "./types": {
       "types": "./dist/types/index.d.ts",
+      "development": "./src/types/index.ts",
       "import": "./dist/types/index.js"
     },
     "./parsers": {
       "types": "./dist/parsers/index.d.ts",
+      "development": "./src/parsers/index.ts",
       "import": "./dist/parsers/index.js"
     },
     "./api": {
       "types": "./dist/api/index.d.ts",
+      "development": "./src/api/index.ts",
       "import": "./dist/api/index.js"
     },
     "./data": {
       "types": "./dist/data/index.d.ts",
+      "development": "./src/data/index.ts",
       "import": "./dist/data/index.js"
     }
   },

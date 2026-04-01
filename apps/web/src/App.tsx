@@ -14,7 +14,7 @@ export default function App() {
         }}
       >
         <Link to="/" className="text-lg font-bold" style={{ color: "var(--accent)" }}>
-          PoE Helper
+          ExiledOrb
         </Link>
         <Link to="/" className="text-sm hover:opacity-80" style={{ color: "var(--text-secondary)" }}>
           Dashboard

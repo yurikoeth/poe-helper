@@ -1,5 +1,6 @@
-import type { ParsedItem, PriceResult, PoeNinjaCategory } from "@poe-helper/shared";
-import { lookupPrice, getDivineRate, searchTrade } from "@poe-helper/shared";
+import { invoke } from "@tauri-apps/api/core";
+import type { ParsedItem, PriceResult, PoeNinjaCategory, Game } from "@exiled-orb/shared";
+import { useSettingsStore } from "../stores/settings-store";
 
 /** Map item class/rarity to poe.ninja category */
 function getCategory(item: ParsedItem): PoeNinjaCategory | null {
@@ -20,31 +21,108 @@ function getCategory(item: ParsedItem): PoeNinjaCategory | null {
 
   if (item.itemClass.toLowerCase().includes("map")) return "Map";
 
-  // Fragment items
   const fragmentKeywords = ["fragment", "splinter", "emblem", "scarab", "offering"];
   if (fragmentKeywords.some((kw) => item.baseType.toLowerCase().includes(kw))) return "Fragment";
 
   return null;
 }
 
-/** Default league — should come from settings/API in production */
-const DEFAULT_LEAGUE = "Settlers of Kalguur"; // Update per league
+const NINJA_URLS: Record<Game, string> = {
+  poe1: "https://poe.ninja/api/data",
+  poe2: "https://poe.ninja/api/data",
+};
+
+const CURRENCY_TYPES = new Set(["Currency", "Fragment"]);
+
+/** Fetch from poe.ninja via Rust proxy to avoid CORS */
+async function ninjaFetch(game: Game, league: string, category: string): Promise<any[]> {
+  const base = NINJA_URLS[game];
+  const endpoint = CURRENCY_TYPES.has(category) ? "currencyoverview" : "itemoverview";
+  const url = `${base}/${endpoint}?league=${encodeURIComponent(league)}&type=${category}`;
+
+  try {
+    console.log("[ExiledOrb] poe.ninja fetch:", url);
+    const raw: string = await invoke("fetch_ninja", { url });
+    if (raw.trimStart().startsWith("<!")) {
+      console.warn("[ExiledOrb] poe.ninja returned HTML (possibly wrong league or API error)");
+      return [];
+    }
+    const data = JSON.parse(raw);
+    const lines = data.lines || [];
+    console.log(`[ExiledOrb] poe.ninja returned ${lines.length} items for ${category}`);
+    return lines;
+  } catch (err) {
+    console.error("[ExiledOrb] poe.ninja fetch failed:", err);
+    return [];
+  }
+}
+
+/** Lookup a specific item on poe.ninja */
+async function ninjaLookup(
+  game: Game,
+  league: string,
+  category: string,
+  name: string,
+  opts?: { links?: number; gemLevel?: number }
+): Promise<{ chaosValue: number; divineValue: number; listingCount: number } | null> {
+  const lines = await ninjaFetch(game, league, category);
+  if (lines.length === 0) return null;
+
+  const lower = name.toLowerCase();
+
+  for (const line of lines) {
+    const itemName = (line.name || line.currencyTypeName || "").toLowerCase();
+    if (itemName !== lower) continue;
+
+    // Check links filter
+    if (opts?.links && line.links !== undefined && line.links !== opts.links) continue;
+    // Check gem level filter
+    if (opts?.gemLevel && line.gemLevel !== undefined && line.gemLevel !== opts.gemLevel) continue;
+
+    return {
+      chaosValue: line.chaosValue ?? line.chaosEquivalent ?? line.receive?.value ?? 0,
+      divineValue: line.divineValue ?? 0,
+      listingCount: line.listingCount ?? line.count ?? 0,
+    };
+  }
+
+  return null;
+}
+
+/** Cached divine rate so PriceCheck component can use it */
+let lastDivineRate = 200;
+
+/** Get divine orb rate */
+async function getDivineRate(game: Game, league: string): Promise<number> {
+  const result = await ninjaLookup(game, league, "Currency", "Divine Orb");
+  const rate = result?.chaosValue ?? 200;
+  lastDivineRate = rate;
+  return rate;
+}
+
+/** Get the last fetched divine rate (for display) */
+export function getDivineRateCached(): number {
+  return lastDivineRate;
+}
 
 /**
  * Check the price of a parsed item.
- * Routes to poe.ninja for known categories, falls back to trade API for rares.
+ * Routes to poe.ninja for known categories.
  */
 export async function checkPrice(
   item: ParsedItem,
-  league: string = DEFAULT_LEAGUE
+  league?: string
 ): Promise<PriceResult> {
+  if (!league) {
+    league = useSettingsStore.getState().settings.league || "Mirage";
+  }
   const category = getCategory(item);
+  console.log(`[ExiledOrb] Price check: "${item.name || item.baseType}" category=${category} league=${league} game=${item.game}`);
 
-  // For items with a poe.ninja category, use direct lookup
   if (category) {
     try {
       const lookupName = item.name || item.baseType;
-      const ninjaItem = await lookupPrice(item.game, league, category, lookupName, {
+      const ninjaItem = await ninjaLookup(item.game, league, category, lookupName, {
         links: item.links && item.links >= 5 ? item.links : undefined,
         gemLevel: item.gemLevel ?? undefined,
       });
@@ -64,16 +142,7 @@ export async function checkPrice(
         };
       }
     } catch (err) {
-      console.error("poe.ninja lookup failed:", err);
-    }
-  }
-
-  // For rares or if poe.ninja didn't have it, use trade API
-  if (item.rarity === "Rare") {
-    try {
-      return await searchTrade(item, league);
-    } catch (err) {
-      console.error("Trade API search failed:", err);
+      console.error("[ExiledOrb] poe.ninja lookup failed:", err);
     }
   }
 

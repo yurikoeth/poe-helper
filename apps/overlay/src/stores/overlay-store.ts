@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ParsedItem, PriceResult, MapAnalysis } from "@poe-helper/shared";
+import type { ParsedItem, PriceResult, MapAnalysis } from "@exiled-orb/shared";
 
 type ActivePanel = "price" | "map" | null;
 
@@ -20,13 +20,23 @@ interface OverlayState {
   sessionDeaths: number;
   sessionStart: number | null;
 
+  // Game/character state
+  detectedGame: "poe1" | "poe2" | null;
+  characterName: string | null;
+  characterClass: string | null;
+  areaLevel: number | null;
+
   // Actions
   toggleVisibility: () => void;
   dismissPanel: () => void;
   setPriceCheck: (item: ParsedItem, result: PriceResult | null, loading: boolean) => void;
   setMapAnalysis: (analysis: MapAnalysis) => void;
   setZone: (zone: string) => void;
-  addDeath: () => void;
+  addDeath: (characterName?: string) => void;
+  setCharacterName: (name: string) => void;
+  setCharacterClass: (cls: string) => void;
+  setDetectedGame: (game: "poe1" | "poe2") => void;
+  setAreaLevel: (level: number) => void;
   resetSession: () => void;
 }
 
@@ -43,6 +53,11 @@ export const useOverlayStore = create<OverlayState>((set) => ({
   currentZone: null,
   sessionDeaths: 0,
   sessionStart: null,
+
+  detectedGame: null,
+  characterName: null,
+  characterClass: null,
+  areaLevel: null,
 
   toggleVisibility: () => set((s) => ({ visible: !s.visible })),
 
@@ -68,7 +83,19 @@ export const useOverlayStore = create<OverlayState>((set) => ({
       sessionStart: s.sessionStart ?? Date.now(),
     })),
 
-  addDeath: () => set((s) => ({ sessionDeaths: s.sessionDeaths + 1 })),
+  addDeath: (characterName?: string) =>
+    set((s) => ({
+      sessionDeaths: s.sessionDeaths + 1,
+      characterName: characterName || s.characterName,
+    })),
+
+  setCharacterName: (name) => set({ characterName: name }),
+
+  setCharacterClass: (cls) => set({ characterClass: cls }),
+
+  setDetectedGame: (game) => set({ detectedGame: game }),
+
+  setAreaLevel: (level) => set({ areaLevel: level }),
 
   resetSession: () =>
     set({

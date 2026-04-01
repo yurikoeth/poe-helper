@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    poe_helper_overlay_lib::run();
+    exiled_orb_overlay_lib::run();
 }

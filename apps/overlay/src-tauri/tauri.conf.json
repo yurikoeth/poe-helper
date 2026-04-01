@@ -1,32 +1,38 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicknisi/dotfiles/refs/heads/main/.config/tauri/tauri.conf.schema.json",
-  "productName": "PoE Helper",
+  "productName": "ExiledOrb",
   "version": "0.1.0",
-  "identifier": "com.poe-helper.overlay",
+  "identifier": "com.exiled-orb.overlay",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build"
   },
+  "bundle": {
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ]
+  },
   "app": {
     "windows": [
       {
         "label": "overlay",
-        "title": "PoE Helper",
-        "transparent": true,
-        "decorations": false,
+        "title": "ExiledOrb",
+        "transparent": false,
+        "decorations": true,
         "alwaysOnTop": true,
-        "skipTaskbar": true,
-        "resizable": false,
+        "skipTaskbar": false,
+        "resizable": true,
         "width": 420,
-        "height": 650,
+        "height": 800,
         "x": 20,
         "y": 20
       },
       {
         "label": "settings",
-        "title": "PoE Helper Settings",
+        "title": "ExiledOrb Settings",
         "visible": false,
         "width": 900,
         "height": 700,
@@ -38,11 +44,11 @@
     }
   },
   "plugins": {
-    "clipboard-manager": {
-      "all": true
-    },
     "shell": {
       "open": true
+    },
+    "sql": {
+      "preload": ["sqlite:exiled-orb.db"]
     }
   }
 }

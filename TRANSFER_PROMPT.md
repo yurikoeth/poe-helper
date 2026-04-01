@@ -1,4 +1,4 @@
-# PoE Helper — Conversation Transfer Prompt
+# ExiledOrb — Conversation Transfer Prompt
 
 Copy and paste this into a new Claude Code session on your Windows machine after cloning the repo.
 
@@ -6,7 +6,7 @@ Copy and paste this into a new Claude Code session on your Windows machine after
 
 ## Prompt
 
-I'm continuing work on `poe-helper`, a Path of Exile helper application I started on another machine. Read the CLAUDE.md for full project context.
+I'm continuing work on `exiled-orb`, an all-in-one Path of Exile companion application. Read the CLAUDE.md for full project context.
 
 ### What's been built so far
 
@@ -27,7 +27,7 @@ This is a **pnpm + Turborepo monorepo** with three packages:
    - **React frontend**: PriceCheck panel (item display, price, confidence, trade link, auto-fade), MapModWarnings panel (color-coded danger per mod), ZoneTracker HUD (current zone, session timer, death counter).
    - **Zustand store**: UI visibility, active panel routing, price/map/zone state.
    - **Hooks**: useClipboard (routes items vs maps), useClientLog (zone/death/level events), usePriceCheck (poe.ninja → trade fallback).
-   - **Tauri config**: Two windows — overlay (420x650, transparent, always-on-top, no decorations) and settings (900x700, hidden).
+   - **Tauri config**: Two windows — overlay (420x650, transparent, always-on-top) and settings (900x700, hidden).
    - F5 toggles overlay, Esc dismisses current panel.
 
 3. **`apps/web`** — React web dashboard (scaffold only)
@@ -39,19 +39,20 @@ This is a **pnpm + Turborepo monorepo** with three packages:
 
 The immediate priorities are:
 
-1. **Verify the Tauri build compiles on Windows** — run `pnpm install` then `pnpm tauri dev` from `apps/overlay/`. The Rust code couldn't be verified on Linux (missing WebView2/GTK deps). On Windows with WebView2 (built-in on Win 10/11), it should compile cleanly.
+1. **Settings system + SQLite persistence** — Tauri SQL plugin for overlay settings, map run history, session data.
 
-2. **End-to-end test the overlay** — launch PoE, Ctrl+C an item, verify the price check overlay appears. Test with different item types (currency, unique, rare, map). Check that Client.txt zone/death tracking works.
+2. **Fix GGG Trade client** — stat-to-ID mappings are stubbed, divine rate is hardcoded, PoE2 URLs need fixing.
 
-3. **Implement GGG OAuth2** — needed for the web character dashboard. Flow: user clicks "Connect" → redirect to GGG OAuth → callback to Vercel serverless → store tokens in Supabase → fetch characters via API.
+3. **Map speedrun/grinding tracker** — Auto-detect map runs from Client.txt zone events, live timer, maps/hour, splits.
 
-4. **Add SQLite local storage** — Tauri SQL plugin for overlay session history, price cache persistence, and user settings.
+4. **AI-assisted trading** — Claude API integration (through Rust backend) for mod analysis, price recommendations, trade whisper assistance.
 
-### Roadmap (from the plan)
+### Roadmap
 
-- **Phase 1 (MVP)**: Price checker ✅, Map mod warnings ✅, Zone/death tracker ✅, Character dashboard (needs OAuth)
-- **Phase 2**: Session tracker (XP/currency/hour), Boss mechanic cheat sheets, Atlas progression tracker, Trade search helper, Currency stash valuation
-- **Phase 3**: Crafting helper, Build planner integration, League challenge tracker, Gem leveling tracker, Stash net worth history, Popular builds aggregation
+- **Phase 1 (Foundation)**: Settings system, SQLite, fix GGG Trade ✅ Price checker ✅ Map mod warnings ✅ Zone tracker
+- **Phase 2**: Map speedrun/grinding tracker (live timer, maps/hour, splits, session stats)
+- **Phase 3**: AI-assisted trading (Claude API — mod tiers, price recs, trade whisper assistant, snipe alerts)
+- **Phase 4**: Leveling overlay, currency flip tracker, atlas strategy helper, personalized map mod warnings
 
 ### Key technical notes
 
@@ -61,3 +62,4 @@ The immediate priorities are:
 - Item text detection: look for "Item Class:" (PoE2) or "Rarity:" (PoE1) plus "--------" separators
 - Overlay approach (clipboard + log file reading) is the same as GGG-sanctioned tools — safe from anti-cheat
 - Default league in usePriceCheck is hardcoded to "Settlers of Kalguur" — will need updating per league
+- AI features use user's own Claude API key, calls routed through Rust backend to protect the key

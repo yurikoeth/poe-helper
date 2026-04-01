@@ -62,7 +62,7 @@ export default function Dashboard() {
           Getting Started
         </h2>
         <ol className="list-decimal list-inside space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-          <li>Download and install the PoE Helper overlay from the releases page</li>
+          <li>Download and install the ExiledOrb overlay from the releases page</li>
           <li>Connect your GGG account via OAuth to access character and stash data</li>
           <li>Launch PoE and the overlay will auto-detect your Client.txt</li>
           <li>Press Ctrl+C on any item in-game to see its price</li>

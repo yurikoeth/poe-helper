@@ -1,34 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --bg-overlay: rgba(15, 15, 20, 0.92);
-  --bg-panel: rgba(25, 25, 35, 0.95);
-  --border-color: rgba(100, 100, 120, 0.3);
-  --text-primary: #e2e2e8;
-  --text-secondary: #9090a0;
+  /* Dark/black theme with white accents */
+  --bg-overlay: rgba(8, 8, 10, 0.94);
+  --bg-panel: rgba(18, 18, 22, 0.95);
+  --bg-panel-hover: rgba(28, 28, 34, 0.95);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(255, 255, 255, 0.15);
+  --text-primary: #e8e8ec;
+  --text-secondary: #78787e;
+  --accent: #ffffff;
+  --accent-hover: #d0d0d0;
+  --accent-dim: rgba(255, 255, 255, 0.08);
+
+  /* Danger colors */
   --danger-deadly: #ff4444;
   --danger-dangerous: #ff8c00;
   --danger-caution: #ffd700;
   --danger-safe: #44cc44;
-  --accent: #7c6cff;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: var(--bg-overlay);
   overflow: hidden;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Scrollbar styling for panels */
+#root {
+  background-image: url('./assets/wallpaper/BlogPost_Path_of_Exile_2_How_to_Ascend_poe-2-ascension-banner_img_hero.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 10, 0.85);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(18, 18, 22, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 100, 120, 0.4);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }

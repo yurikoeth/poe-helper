@@ -59,7 +59,7 @@ export async function fetchCategory(
   const url = `${baseUrl}/${endpoint.overview}?league=${encodeURIComponent(league)}&type=${category}`;
 
   const response = await fetch(url, {
-    headers: { "User-Agent": "poe-helper/0.1.0" },
+    headers: { "User-Agent": "exiled-orb/0.1.0" },
   });
 
   if (!response.ok) {
