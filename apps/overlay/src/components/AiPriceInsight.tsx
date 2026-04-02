@@ -9,7 +9,7 @@ const tierColors: Record<number, string> = {
   5: "text-gray-500",
 };
 
-/** AI-powered price insight panel, shown below PriceCheck */
+/** AI-powered or local mod-tier price insight panel */
 export default function AiPriceInsight() {
   const { currentAnalysis, analysisLoading } = useAiStore();
 
@@ -26,7 +26,10 @@ export default function AiPriceInsight() {
 
   if (!currentAnalysis) return null;
 
-  const { modTiers, priceRecommendation, craftAdvice, itemSummary } = currentAnalysis;
+  const { modTiers, priceRecommendation, craftAdvice, itemSummary, buyOrCraftReason } = currentAnalysis;
+
+  // Detect if this is a local (no API key) analysis
+  const isLocal = !buyOrCraftReason && priceRecommendation.reasoning?.includes("mod tier analysis");
 
   const confColors = {
     high: "text-green-400",
@@ -35,7 +38,7 @@ export default function AiPriceInsight() {
   };
 
   return (
-    <WitchSays title="Price Insight">
+    <WitchSays title={isLocal ? "Mod Analysis" : "Price Insight"}>
       <div className="space-y-2">
         <p style={{ color: "var(--text-secondary)" }}>{itemSummary}</p>
 
@@ -49,6 +52,11 @@ export default function AiPriceInsight() {
                 <span className="truncate" style={{ color: "var(--text-primary)" }}>
                   {mod.modText}
                 </span>
+                {mod.explanation && (
+                  <span className="shrink-0 text-xs" style={{ color: "var(--text-secondary)" }}>
+                    {mod.explanation}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -70,6 +78,15 @@ export default function AiPriceInsight() {
           <div style={{ color: "var(--text-secondary)" }}>
             <span className="font-bold" style={{ color: "var(--accent)" }}>Craft: </span>
             {craftAdvice}
+          </div>
+        )}
+
+        {isLocal && (
+          <div
+            className="text-xs px-2 py-1.5 rounded mt-1"
+            style={{ background: "rgba(255,255,255,0.04)", color: "var(--text-secondary)" }}
+          >
+            Add a Claude API key in Settings for deeper Witch-powered analysis
           </div>
         )}
       </div>

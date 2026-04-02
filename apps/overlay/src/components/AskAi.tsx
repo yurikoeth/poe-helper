@@ -128,7 +128,8 @@ export default function AskAi() {
     const apiKey = await getApiKey();
 
     if (!apiKey) {
-      setMessages((prev) => [...prev, { role: "ai", text: "Set your Claude API key in the GGG tab first." }]);
+      setMessages((prev) => [...prev, { role: "ai", text: "No API key set. To chat with the Witch, add your Claude API key in Settings > AI. You can get one at console.anthropic.com. Price checking and mod analysis still work without it." }]);
+      setLoading(false);
       return;
     }
 

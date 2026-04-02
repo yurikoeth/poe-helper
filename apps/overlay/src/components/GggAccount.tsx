@@ -248,7 +248,7 @@ export default function GggAccount() {
     const apiKey = await getApiKey();
 
     if (!apiKey) {
-      setError("Set your Claude API key first (click the key icon below)");
+      setError("Add your Claude API key in Settings > AI to use build analysis. Get one at console.anthropic.com — gear viewing and price checks work without it.");
       return;
     }
 
