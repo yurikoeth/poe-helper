@@ -46,7 +46,7 @@ export default function PriceCheck() {
       ...currentItem.implicits.map((m) => m.text),
     ];
     const socketCount = currentItem.sockets ? currentItem.sockets.split(/[-\s]/).length : null;
-    return evaluateItem(allMods, currentItem.itemLevel, socketCount, currentItem.links);
+    return evaluateItem(allMods, currentItem.itemLevel, socketCount, currentItem.links, currentItem.game);
   }, [currentItem]);
 
   const recheck = async () => {

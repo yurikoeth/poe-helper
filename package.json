@@ -3,10 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.32.1",
-  "description": "ExiledOrb — all-in-one Path of Exile companion (desktop overlay + web dashboard)",
+  "description": "ExiledOrb — all-in-one Path of Exile companion (desktop overlay)",
   "scripts": {
     "dev:overlay": "turbo run dev --filter=@exiled-orb/overlay",
-    "dev:web": "turbo run dev --filter=@exiled-orb/web",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

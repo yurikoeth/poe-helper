@@ -21,7 +21,7 @@ function generateLocalAnalysis(item: ParsedItem, priceResult: PriceResult | null
     ...item.implicits.map((m) => m.text),
   ];
   const socketCount = item.sockets ? item.sockets.split(/[-\s]/).length : null;
-  const evaluation = evaluateItem(allMods, item.itemLevel, socketCount, item.links);
+  const evaluation = evaluateItem(allMods, item.itemLevel, socketCount, item.links, item.game);
 
   const modTiers = evaluation.mods
     .filter((m) => m.tier >= 1 && m.tier <= 5)

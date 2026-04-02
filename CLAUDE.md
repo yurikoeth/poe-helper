@@ -1,16 +1,15 @@
 # ExiledOrb
 
-All-in-one Path of Exile companion — desktop overlay + web dashboard for PoE1 & PoE2.
+All-in-one Path of Exile companion — desktop overlay for PoE1 & PoE2.
 
 ## Tech Stack
 
 - **Monorepo**: pnpm workspaces + Turborepo
 - **Overlay**: Tauri v2 (Rust backend + React 19 frontend)
-- **Web**: React 19 + Vite (placeholder, future Vercel deploy)
 - **Shared**: TypeScript library — item/log parsers, API clients, types, game data
 - **State**: Zustand — one store per feature domain
 - **Styling**: Tailwind CSS v4
-- **DB**: SQLite via tauri-plugin-sql (local), Supabase (web, future)
+- **DB**: SQLite via tauri-plugin-sql (local)
 - **AI**: Claude API via Rust reqwest + rustls-tls. User's own key in tauri-plugin-store. All responses in PoE1 Witch persona.
 - **Testing**: Vitest
 
@@ -39,7 +38,6 @@ poe-helper/
 │       ├── stores/      # overlay-store, settings-store, speedrun-store, ai-store, build-store
 │       ├── utils/       # store.ts (shared tauri-plugin-store access)
 │       └── assets/      # classes/, menu/, poe1/poe2 logos, wallpaper
-├── apps/web/src/pages/  # Dashboard.tsx, Characters.tsx (placeholder)
 └── run.bat              # Launch script
 ```
 
@@ -48,7 +46,6 @@ poe-helper/
 ```bash
 pnpm install                     # Install all deps
 pnpm run dev:overlay             # Start overlay (Tauri dev)
-pnpm run dev:web                 # Start web dashboard
 pnpm run build                   # Build all packages
 pnpm run test                    # Run all tests
 pnpm run typecheck               # TS check all packages
@@ -160,8 +157,6 @@ Esc → back to home
 ## Not Yet Implemented
 
 - GGG OAuth2 flow (stash tabs, private profiles)
-- Session sync (overlay → web via Supabase)
 - Tauri Windows packaging/installer (.msi/.exe)
-- Web dashboard pages
 - Snipe alerts (background trade polling)
 - GGG Trade API for rare pricing (currently mod-tier estimation only)

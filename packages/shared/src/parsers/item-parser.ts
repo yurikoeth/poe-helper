@@ -2,13 +2,49 @@ import type { Game, Rarity, Influence, ParsedItem, ItemMod } from "../types/item
 
 const SEPARATOR = "--------";
 
+/** PoE2-exclusive item classes that don't exist in PoE1 */
+const POE2_ITEM_CLASSES = new Set([
+  // Weapons
+  "crossbows",
+  "quarterstaves",
+  "flails",
+  "spears",
+  "traps",
+  // Off-hand
+  "foci",
+  "bucklers",
+  // Endgame
+  "waystones",
+  "precursor tablets",
+  // Items
+  "charms",
+  // Currency
+  "barya",
+  "augments",
+  "omens",
+  "preserved bones",
+  "liquid emotions",
+]);
+
 /** Detect which game an item clipboard text is from */
 function detectGame(raw: string): Game {
-  // PoE2 items have different formatting cues
-  // PoE2 doesn't use socket links (R-R-R), uses different "Item Class" values
-  // For now, default to poe1 unless we detect poe2-specific patterns
-  if (raw.includes("Item Class: ") && raw.includes("Waystone")) return "poe2";
-  // PoE2 uses "Waystones" instead of "Maps"
+  // PoE2 always starts with "Item Class:" — PoE1 often starts with "Rarity:"
+  // But PoE1 also has "Item Class:" in newer versions, so check class values
+  const classMatch = raw.match(/Item Class:\s*(.+)/i);
+  if (classMatch) {
+    const itemClass = classMatch[1].trim().toLowerCase();
+    // Check for PoE2-exclusive item classes
+    if (POE2_ITEM_CLASSES.has(itemClass)) return "poe2";
+    // PoE2 uses "Waystones", PoE1 uses "Maps"
+    if (itemClass.includes("waystone")) return "poe2";
+  }
+  // PoE2 items never have socket links (R-R-R-G-B format) — sockets are on gems
+  // If we see the old socket format, it's definitely PoE1
+  if (raw.match(/Sockets:\s*[RGBWA][-\s]/)) return "poe1";
+  // PoE2 has "Critical Damage Bonus" instead of "Critical Strike Multiplier"
+  if (raw.includes("Critical Damage Bonus")) return "poe2";
+  // PoE2 has Spirit instead of Mana reservation
+  if (raw.match(/\+\d+ Spirit/)) return "poe2";
   return "poe1";
 }
 

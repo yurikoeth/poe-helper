@@ -82,7 +82,9 @@
       "Bash(taskkill //F //IM \"node.exe\")",
       "Bash(CARGO_TARGET_DIR=\"E:/rust-target\" pnpm tauri dev)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

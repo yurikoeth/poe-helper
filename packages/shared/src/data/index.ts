@@ -8,5 +8,5 @@ export { POE1_LEVELING, POE2_LEVELING, getLevelingGuide, findCurrentStep, getNex
 export type { LevelingStep, LevelingGuide } from "./leveling-guide.js";
 export { ATLAS_STRATEGIES, getStrategies, getStrategy } from "./atlas-strategies.js";
 export type { AtlasStrategy } from "./atlas-strategies.js";
-export { MOD_TIER_DB, evaluateMod, evaluateItem } from "./mod-tiers.js";
+export { MOD_TIER_DB, getModDB, evaluateMod, evaluateItem } from "./mod-tiers.js";
 export type { ModTierRange, ModEvaluation, ItemEvaluation } from "./mod-tiers.js";
