@@ -72,7 +72,7 @@ pub fn start_clipboard_watcher(app: AppHandle) {
         eprintln!("[ExiledOrb] Clipboard watcher started (Win32 API)");
 
         loop {
-            std::thread::sleep(Duration::from_millis(200));
+            std::thread::sleep(Duration::from_millis(500));
 
             let text = match read_clipboard_win32() {
                 Some(t) if !t.is_empty() => t,

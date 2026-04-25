@@ -4,10 +4,21 @@ import type { Game, PoeNinjaCategory, PoeNinjaItem, PriceCache } from "../types/
 const DEFAULT_TTL = 5 * 60 * 1000;
 
 /** poe.ninja base URLs */
-const BASE_URLS: Record<Game, string> = {
+export const NINJA_BASE_URLS: Record<Game, string> = {
   poe1: "https://poe.ninja/api/data",
   poe2: "https://poe2.ninja/api/data", // PoE2 has a separate domain
 };
+const BASE_URLS = NINJA_BASE_URLS;
+
+/** Categories served by the currencyoverview endpoint */
+export const NINJA_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set(["Currency", "Fragment"]);
+
+/** Build a poe.ninja overview URL for a given game/league/category */
+export function buildNinjaUrl(game: Game, league: string, category: string): string {
+  const base = NINJA_BASE_URLS[game];
+  const endpoint = NINJA_CURRENCY_CATEGORIES.has(category) ? "currencyoverview" : "itemoverview";
+  return `${base}/${endpoint}?league=${encodeURIComponent(league)}&type=${category}`;
+}
 
 /** Map category names to poe.ninja API endpoints */
 const CATEGORY_ENDPOINTS: Record<PoeNinjaCategory, { type: "currency" | "item"; overview: string }> = {
@@ -55,8 +66,7 @@ export async function fetchCategory(
   }
 
   const endpoint = CATEGORY_ENDPOINTS[category];
-  const baseUrl = BASE_URLS[game];
-  const url = `${baseUrl}/${endpoint.overview}?league=${encodeURIComponent(league)}&type=${category}`;
+  const url = buildNinjaUrl(game, league, category);
 
   const response = await fetch(url, {
     headers: { "User-Agent": "exiled-orb/0.1.0" },

@@ -14,7 +14,7 @@ export default function MapTimer() {
     }
     const interval = setInterval(() => {
       setElapsed(Date.now() - currentRun.startedAt);
-    }, 100); // Update every 100ms for precision feel
+    }, 250);
     return () => clearInterval(interval);
   }, [currentRun]);
 

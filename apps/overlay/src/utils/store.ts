@@ -22,9 +22,3 @@ export async function getApiKey(): Promise<string | null> {
   }
 }
 
-/** Save the Claude API key to the store */
-export async function saveApiKey(key: string): Promise<void> {
-  const store = await getStore();
-  await store.set("claude_api_key", key);
-  await store.save();
-}

@@ -34,7 +34,7 @@ export default function AskAi() {
       store.get<SavedChat[]>("ai_chats").then((chats) => {
         if (chats) setSavedChats(chats);
       });
-    }).catch(() => {});
+    }).catch((err) => console.error("[ExiledOrb]", err));
   }, []);
 
   const saveChatsToStore = async (chats: SavedChat[]) => {

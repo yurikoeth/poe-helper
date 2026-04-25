@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useSettingsStore } from "../stores/settings-store";
 import type { Game } from "@exiled-orb/shared";
+import { buildNinjaUrl, NINJA_CURRENCY_CATEGORIES } from "@exiled-orb/shared";
 import poe1Logo from "../assets/poe1-logo.png";
 import poe2Logo from "../assets/poe2-logo.png";
 
@@ -11,6 +12,22 @@ interface NinjaItem {
   divineValue: number;
   icon: string;
   change: number;
+}
+
+interface NinjaCurrencyLine {
+  currencyTypeName: string;
+  chaosEquivalent?: number;
+  receive?: { value: number };
+  receiveSparkLine?: { totalChange?: number };
+}
+
+interface NinjaItemLine {
+  name?: string;
+  currencyTypeName?: string;
+  chaosValue?: number;
+  divineValue?: number;
+  icon?: string;
+  sparkline?: { totalChange?: number };
 }
 
 type Category = "Currency" | "Fragment" | "DivinationCard" | "UniqueWeapon" | "UniqueArmour" | "SkillGem" | "Map" | "Essence" | "Scarab";
@@ -25,17 +42,8 @@ const CATEGORIES: { id: Category; label: string }[] = [
   { id: "Scarab", label: "Scarabs" },
 ];
 
-const NINJA_URLS: Record<Game, string> = {
-  poe1: "https://poe.ninja/api/data",
-  poe2: "https://poe2.ninja/api/data",
-};
-
-const CURRENCY_TYPES = new Set(["Currency", "Fragment"]);
-
 async function fetchCategory(game: Game, league: string, category: Category): Promise<NinjaItem[]> {
-  const base = NINJA_URLS[game];
-  const endpoint = CURRENCY_TYPES.has(category) ? "currencyoverview" : "itemoverview";
-  const url = `${base}/${endpoint}?league=${encodeURIComponent(league)}&type=${category}`;
+  const url = buildNinjaUrl(game, league, category);
 
   let raw: string;
   try {
@@ -49,8 +57,8 @@ async function fetchCategory(game: Game, league: string, category: Category): Pr
   }
   const data = JSON.parse(raw);
 
-  if (CURRENCY_TYPES.has(category)) {
-    return (data.lines || []).map((line: any) => ({
+  if (NINJA_CURRENCY_CATEGORIES.has(category)) {
+    return (data.lines || []).map((line: NinjaCurrencyLine) => ({
       name: line.currencyTypeName,
       chaosValue: line.chaosEquivalent ?? line.receive?.value ?? 0,
       divineValue: 0,
@@ -59,7 +67,7 @@ async function fetchCategory(game: Game, league: string, category: Category): Pr
     })).sort((a: NinjaItem, b: NinjaItem) => b.chaosValue - a.chaosValue);
   }
 
-  return (data.lines || []).map((line: any) => ({
+  return (data.lines || []).map((line: NinjaItemLine) => ({
     name: line.name || line.currencyTypeName,
     chaosValue: line.chaosValue ?? 0,
     divineValue: line.divineValue ?? 0,

@@ -148,9 +148,6 @@ export function getModDB(game: Game = "poe1"): ModTierRange[] {
   return game === "poe2" ? POE2_MODS : POE1_MODS;
 }
 
-/** Legacy export for backwards compat — defaults to PoE1 */
-export const MOD_TIER_DB = POE1_MODS;
-
 export interface ModEvaluation {
   modText: string;
   name: string;

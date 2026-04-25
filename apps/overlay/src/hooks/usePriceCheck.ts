@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { ParsedItem, PriceResult, PoeNinjaCategory, Game } from "@exiled-orb/shared";
+import { buildNinjaUrl } from "@exiled-orb/shared";
 import { useSettingsStore } from "../stores/settings-store";
 
 /** Map item class/rarity to poe.ninja category */
@@ -27,18 +28,23 @@ function getCategory(item: ParsedItem): PoeNinjaCategory | null {
   return null;
 }
 
-const NINJA_URLS: Record<Game, string> = {
-  poe1: "https://poe.ninja/api/data",
-  poe2: "https://poe.ninja/api/data",
-};
-
-const CURRENCY_TYPES = new Set(["Currency", "Fragment"]);
+/** Shape of a poe.ninja line (union of Currency + Item endpoints; all optional). */
+interface NinjaLine {
+  name?: string;
+  currencyTypeName?: string;
+  links?: number;
+  gemLevel?: number;
+  chaosValue?: number;
+  chaosEquivalent?: number;
+  receive?: { value?: number };
+  divineValue?: number;
+  listingCount?: number;
+  count?: number;
+}
 
 /** Fetch from poe.ninja via Rust proxy to avoid CORS */
-async function ninjaFetch(game: Game, league: string, category: string): Promise<any[]> {
-  const base = NINJA_URLS[game];
-  const endpoint = CURRENCY_TYPES.has(category) ? "currencyoverview" : "itemoverview";
-  const url = `${base}/${endpoint}?league=${encodeURIComponent(league)}&type=${category}`;
+async function ninjaFetch(game: Game, league: string, category: string): Promise<NinjaLine[]> {
+  const url = buildNinjaUrl(game, league, category);
 
   try {
     console.log("[ExiledOrb] poe.ninja fetch:", url);

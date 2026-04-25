@@ -239,7 +239,7 @@ pub fn start_log_watcher(app: AppHandle, log_path: PathBuf) {
                 line.clear();
             }
 
-            thread::sleep(Duration::from_millis(500));
+            thread::sleep(Duration::from_millis(1000));
         }
     });
 }

@@ -2,31 +2,12 @@ import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useOverlayStore } from "../stores/overlay-store";
-
-interface LogEventPayload {
-  type: string;
-  zone_name?: string;
-  character_name?: string;
-  direction?: string;
-  player_name?: string;
-  message?: string;
-  level?: number;
-  server?: string;
-  game?: string;
-  log_path?: string;
-}
+import type { LogEventPayload, InitialGameState } from "@exiled-orb/shared";
 
 /**
  * Listen for log-event events from the Rust backend (Client.txt watcher).
  * Updates the overlay store with zone changes, deaths, etc.
  */
-interface InitialGameState {
-  character_name: string | null;
-  zone: string | null;
-  area_level: number | null;
-  game: string | null;
-  log_path: string | null;
-}
 
 export function useClientLog() {
   // Fetch initial state from Rust on mount (no race condition)

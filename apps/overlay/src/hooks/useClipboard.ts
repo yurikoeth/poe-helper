@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { parseItem, isPoEItem, analyzeMap } from "@exiled-orb/shared";
+import type { ParsedItem } from "@exiled-orb/shared";
 import { useOverlayStore } from "../stores/overlay-store";
 import { useSettingsStore } from "../stores/settings-store";
 import { checkPrice } from "./usePriceCheck";
@@ -47,15 +48,16 @@ export function useClipboard() {
           console.log("[ExiledOrb] Price result:", result.source, result.chaosValue, result.confidence);
           useOverlayStore.getState().setPriceCheck(item, result, false);
 
-          // Trigger AI analysis in the background (non-blocking)
-          analyzeItemWithAi(item, result).catch(() => {});
+          // Trigger AI analysis in the background (non-blocking).
+          // analyzeItemWithAi handles its own errors internally and never rejects.
+          void analyzeItemWithAi(item, result);
         }
       } catch (err) {
         console.error("[ExiledOrb] Failed to parse clipboard item:", err);
-        // Show error in the UI so user knows something went wrong
+        const errorItem: ParsedItem = { raw, game: "poe1", itemClass: "", rarity: "Normal", name: null, baseType: "Parse Error", itemLevel: null, quality: null, sockets: null, links: null, implicits: [], explicits: [], enchants: [], corrupted: false, mirrored: false, unidentified: false, influences: [], stackSize: null, mapTier: null, gemLevel: null, requirements: {}, properties: {} };
         useOverlayStore.getState().setPriceCheck(
-          { raw, game: "poe1", itemClass: "", rarity: "Normal", name: null, baseType: "Parse Error", itemLevel: null, quality: null, sockets: null, links: null, implicits: [], explicits: [], enchants: [], corrupted: false, mirrored: false, unidentified: false, influences: [], stackSize: null, mapTier: null, gemLevel: null, requirements: {}, properties: {} },
-          { item: null as any, source: "unavailable", chaosValue: null, divineValue: null, confidence: "none", listingCount: null, priceRange: null, tradeUrl: null, timestamp: Date.now() },
+          errorItem,
+          { item: errorItem, source: "unavailable", chaosValue: null, divineValue: null, confidence: "none", listingCount: null, priceRange: null, tradeUrl: null, timestamp: Date.now() },
           false
         );
       }

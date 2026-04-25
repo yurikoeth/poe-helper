@@ -23,7 +23,7 @@ async function saveChecked(charName: string, checked: Set<string>) {
     const store = await getStore();
     await store.set(`checklist_${charName}`, [...checked]);
     await store.save();
-  } catch {}
+  } catch (err) { console.error("[ExiledOrb] Store error:", err); }
 }
 
 export default function LevelingGuide() {

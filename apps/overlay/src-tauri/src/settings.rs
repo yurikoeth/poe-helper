@@ -53,5 +53,14 @@ pub fn migrations() -> Vec<Migration> {
             );",
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "add outcome and character_name to map_runs",
+            sql: "ALTER TABLE map_runs ADD COLUMN outcome TEXT NOT NULL DEFAULT 'completed';
+            ALTER TABLE map_runs ADD COLUMN character_name TEXT;
+            CREATE INDEX IF NOT EXISTS idx_map_runs_outcome ON map_runs(outcome);
+            CREATE INDEX IF NOT EXISTS idx_map_runs_character ON map_runs(character_name);",
+            kind: MigrationKind::Up,
+        },
     ]
 }

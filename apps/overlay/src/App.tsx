@@ -9,6 +9,10 @@ import AiPriceInsight from "./components/AiPriceInsight";
 import TradeAssistant from "./components/TradeAssistant";
 import LevelingGuide from "./components/LevelingGuide";
 import FlipTracker from "./components/FlipTracker";
+import RunHistory from "./components/RunHistory";
+import RunTimeChart from "./components/RunTimeChart";
+import MapLeaderboard from "./components/MapLeaderboard";
+import MapCountStats from "./components/MapCountStats";
 import AtlasHelper from "./components/AtlasHelper";
 import GggAccount from "./components/GggAccount";
 import AskAi from "./components/AskAi";
@@ -47,10 +51,15 @@ export default function App() {
   const { activePanel } = useOverlayStore();
   const currentRun = useSpeedrunStore((s) => s.currentRun);
   const [page, setPage] = useState<Page>("home");
+  const [leaderboardMap, setLeaderboardMap] = useState<{ name: string; game: string } | null>(null);
 
-  // Load settings and builds on startup
+  // Load settings, builds, and speedrun data on startup
   useEffect(() => {
-    useSettingsStore.getState().loadSettings();
+    useSettingsStore.getState().loadSettings().then(() => {
+      const game = useSettingsStore.getState().settings.game;
+      useSpeedrunStore.getState().loadPBsFromDB(game);
+      useSpeedrunStore.getState().loadGoals();
+    });
     useBuildStore.getState().loadBuilds();
   }, []);
 
@@ -90,12 +99,28 @@ export default function App() {
       </div>
 
 
+      {/* Price check overlay — floats on top of any page */}
+      {activePanel === "price" && (
+        <div
+          className="rounded border p-0 relative"
+          style={{ background: "rgba(10,10,14,0.98)", borderColor: "var(--border-color)", zIndex: 50 }}
+        >
+          <button
+            onClick={() => useOverlayStore.getState().dismissPanel()}
+            className="absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded hover:opacity-80"
+            style={{ background: "rgba(255,255,255,0.08)", color: "var(--text-secondary)", zIndex: 51 }}
+            title="Dismiss (Esc)"
+          >
+            ✕
+          </button>
+          <PriceCheck />
+          <AiPriceInsight />
+        </div>
+      )}
+
       {/* HOME — menu grid + live panels */}
       {page === "home" && (
         <>
-          {/* Price check + AI insight (triggered by Ctrl+C) */}
-          {activePanel === "price" && <PriceCheck />}
-          {activePanel === "price" && <AiPriceInsight />}
           {activePanel === "map" && <MapModWarnings />}
           <MapSplitDisplay />
           <SpeedrunStats />
@@ -142,16 +167,26 @@ export default function App() {
       {page === "atlas" && <AtlasHelper />}
       {page === "maps" && (
         <>
-          {currentRun && <MapSplitDisplay />}
+          <MapSplitDisplay />
           <SpeedrunStats />
-          <FlipTracker />
-          {!currentRun && (
+          <MapCountStats />
+          <RunTimeChart />
+          {leaderboardMap && (
+            <MapLeaderboard
+              mapName={leaderboardMap.name}
+              game={leaderboardMap.game}
+              onClose={() => setLeaderboardMap(null)}
+            />
+          )}
+          <RunHistory onSelectMap={(name, game) => setLeaderboardMap({ name, game })} />
+          {!currentRun && !useSpeedrunStore.getState().session && (
             <HintPanel title="Map Grinding Tracker" lines={[
               "Enter a map to start tracking automatically.",
-              "• Live timer per map",
-              "• Maps per hour & average clear time",
+              "• Live timer + maps/hour + avg clear time",
               "• Personal bests + split comparisons",
-              "• Deaths per map",
+              "• Run history + per-map leaderboards",
+              "• Set goals + track improvement over time",
+              "• Export session data as CSV/JSON",
             ]} />
           )}
         </>

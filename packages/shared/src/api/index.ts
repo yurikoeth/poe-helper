@@ -4,5 +4,8 @@ export {
   lookupPrice,
   getDivineRate,
   clearCache,
+  buildNinjaUrl,
+  NINJA_BASE_URLS,
+  NINJA_CURRENCY_CATEGORIES,
 } from "./poe-ninja.js";
 export { searchTrade, getTradeRateStatus } from "./ggg-trade.js";

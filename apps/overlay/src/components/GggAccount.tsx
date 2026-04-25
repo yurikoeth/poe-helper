@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useOverlayStore } from "../stores/overlay-store";
 import { getStore, getApiKey } from "../utils/store";
+import { parseAiJson } from "../utils/parseAiJson";
 import { useBuildStore, inferBuildTags, type BuildGoal } from "../stores/build-store";
 import poe1Logo from "../assets/poe1-logo.png";
 import poe2Logo from "../assets/poe2-logo.png";
@@ -48,63 +49,6 @@ interface BuildAnalysis {
   }>;
   overallRating: string;
   nextSteps: string;
-}
-
-/** Robust JSON parser for AI responses — handles code fences, trailing commas, truncation */
-function parseAiJson<T>(raw: string, fallback: T): T {
-  let text = raw;
-  // Strip markdown code fences
-  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-  // Find the JSON object
-  const start = text.indexOf("{");
-  if (start < 0) {
-    console.error("[ExiledOrb] No JSON object found in:", raw);
-    return fallback;
-  }
-  text = text.substring(start);
-
-  // The AI often truncates or puts literal \n inside strings.
-  // Strategy: try parsing as-is, then progressively fix issues.
-
-  // Attempt 1: direct parse
-  try { return JSON.parse(text); } catch {}
-
-  // Attempt 2: find last } and trim
-  const end = text.lastIndexOf("}");
-  if (end > 0) text = text.substring(0, end + 1);
-
-  // Fix trailing commas
-  text = text.replace(/,\s*([}\]])/g, "$1");
-
-  try { return JSON.parse(text); } catch {}
-
-  // Attempt 3: the response is often truncated mid-array.
-  // Close any open arrays/objects to make it parseable.
-  let fixed = text;
-  // Count open/close braces and brackets
-  let braces = 0, brackets = 0, inString = false, escape = false;
-  for (const ch of fixed) {
-    if (escape) { escape = false; continue; }
-    if (ch === '\\') { escape = true; continue; }
-    if (ch === '"') { inString = !inString; continue; }
-    if (inString) continue;
-    if (ch === '{') braces++;
-    if (ch === '}') braces--;
-    if (ch === '[') brackets++;
-    if (ch === ']') brackets--;
-  }
-  // If we're inside a string, close it
-  if (inString) fixed += '"';
-  // Close open brackets and braces
-  for (let i = 0; i < brackets; i++) fixed += ']';
-  for (let i = 0; i < braces; i++) fixed += '}';
-  // Fix trailing commas again after closing
-  fixed = fixed.replace(/,\s*([}\]])/g, "$1");
-
-  try { return JSON.parse(fixed); } catch (e) {
-    console.error("[ExiledOrb] JSON parse failed after all attempts:", e, "\nCleaned text:", fixed.substring(0, 500));
-    return fallback;
-  }
 }
 
 const STORE_KEY = "ggg_account_name";
@@ -305,7 +249,7 @@ export default function GggAccount() {
       const store = await getStore();
       await store.set(STORE_KEY, name);
       await store.save();
-    } catch {}
+    } catch (err) { console.error("[ExiledOrb] Store error:", err); }
     setSavedAccount(name);
     await loadCharacters(name);
   };
@@ -319,7 +263,7 @@ export default function GggAccount() {
       const store = await getStore();
       await store.delete(STORE_KEY);
       await store.save();
-    } catch {}
+    } catch (err) { console.error("[ExiledOrb] Store error:", err); }
   };
 
   // Match active character from Client.txt

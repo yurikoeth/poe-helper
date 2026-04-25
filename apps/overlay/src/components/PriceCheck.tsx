@@ -100,7 +100,9 @@ export default function PriceCheck() {
             {currentItem.baseType}
           </div>
         )}
-        <div className="flex gap-2 mt-1 text-xs" style={{ color: "var(--text-secondary)" }}>
+        <div className="flex items-center gap-2 mt-1 text-xs" style={{ color: "var(--text-secondary)" }}>
+          <span style={{ color: "var(--accent)", opacity: 0.7 }}>1 div = {getDivineRateCached()}c</span>
+          <span style={{ opacity: 0.3 }}>|</span>
           {currentItem.itemLevel && <span>iLvl {currentItem.itemLevel}</span>}
           {currentItem.sockets && currentItem.sockets.length >= 5 && !currentItem.links && <span>{currentItem.sockets.split(/[-\s]/).length}S</span>}
           {currentItem.links && currentItem.links >= 4 && <span>{currentItem.links}L</span>}
